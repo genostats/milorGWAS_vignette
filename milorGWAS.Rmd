@@ -43,11 +43,12 @@ div.sourceCode {
 # Introduction
 
 This package is for Genome Wide Association Studies using a logistic mixed model, using
-fast approximate methods as described in Milet et al 2020 (to appear). 
-A similar method was described in Zhou (...).
+fast approximate methods as described in (Milet and Perdry, 2020). One of these methods
+extends the GMMAT method by Chen et al. (Chen et al., 2016). A similar method was described in 
+(Zhou et al., 2020).
 
 Additionnally, it can draw QQ-plots with a separation of SNPs in strata, as defined 
-by Chen (...) and extended in Milet et al.
+by Chen et al. and extended in Milet and Perdry.
 
 This package relies on the package `gaston`, which we will use in the following.
 We are going to illustrate below the functions exported by `milorGWAS`: `association.test.logistic`, `qqplot.pvalues`
@@ -93,7 +94,7 @@ y <- rbinom(length(p), 1, p)
 ## Logistic mixed model with Gaston
 
 The package `gaston` can analyze these data with the Penalized Quasi Likelihood method (`a0` below), which is too
-computationnaly heavy to scale to a GWAS, or with a score test, similar to GMMAT (Chen et al) (`a1` below),
+computationnaly heavy to scale to a GWAS, or with a score test, similar to GMMAT (Chen et al., 2016) (`a1` below),
 which is fast but does not estimate $\beta$'s for each SNP.
 
 ```{r assoGaston, cache=TRUE}
@@ -110,7 +111,7 @@ head(a.gmm)
 
 ## Logistic mixed model with milorGWAS
 
-MilorGWAS proposes two more methods, named `offset` and `amle` (Milet et al for details). 
+MilorGWAS proposes two more methods, named `offset` and `amle` (Milet and Perdry, 2020, for details). 
 Again we show the results for the six first SNPs.
 
 ```{r assoMilor, cache=TRUE}
@@ -125,14 +126,14 @@ The $p$-value from the `amle` method is always the same as the $p$-value from th
 ## Comparing the results
 
 We can compare the $\beta$'s obtained by the `amle` or `offset` algorithm with the values obtained with the PQL:
-```{r plotbeta, fig.height = 4, fig.width = 7, dev = 'png'}
+```{r plotbeta, fig.height = 4, fig.width = 7, dev = 'png', dpi = 300}
 par(mfrow=c(1,2), cex = 0.9)
 plot(a.amle$beta, a.pql$beta, xlab = "AMLE", ylab = "PQL"); abline(0,1,col=4)
 plot(a.ofst$beta, a.pql$beta, xlab = "Offset", ylab = "PQL"); abline(0,1,col=4)
 ```
 
 A similar comparison for the $p$-values (remember that `amle` gives the same $p$-values than the score test).
-```{r plotp, fig.height = 4, fig.width = 7, dev = 'png'}
+```{r plotp, fig.height = 4, fig.width = 7, dev = 'png', dpi = 300}
 par(mfrow=c(1,2), cex = 0.9)
 plot(a.amle$p, a.pql$p, log = "xy", xlab = "AMLE/score", ylab = "PQL"); abline(0,1,col=4)
 plot(a.ofst$p, a.pql$p, log = "xy", xlab = "Offset", ylab = "PQL"); abline(0,1,col=4)
@@ -142,12 +143,12 @@ plot(a.ofst$p, a.pql$p, log = "xy", xlab = "Offset", ylab = "PQL"); abline(0,1,c
 
 Here we will use a simulated structured population with a large number of SNPs 
 to illustrate the stratified qq-plots.
-These data simulated as described in Chen et al or in Milet et al with the program `ms` 
-(Hudson 2003).
+These data simulated as described in (Chen et al., 2016) or in (Milet and Perdry, 2020) 
+with the program `ms` (Hudson, 2002).
 We created a data package for these data. It includes 600k SNPs at linkage equilibrium 
 for 1000 individuals simulated on a 20x20 grid. It includes some first-order related individuals.
 A binary phenotype was simulated with a large population structure effect as described
-in Milet et al.
+in (Milet and Perdry, 2020).
 
 ## Loading the data
 
@@ -190,16 +191,19 @@ K <- GRM(x)
 eigenK <- eigen(K)
 ```
 
+We run a Mixed Linear Model (MLM) and a Mixed Logistic Regression (MLR).
+
 ```{r associationTests, cache = TRUE}
-MLM <- association.test(x, method = "lmm", response = "quantitative", test = "wald", eigenK = eigenK, p = 10)
+MLM <- association.test(x, method = "lmm", response = "quantitative", 
+                        test = "wald", eigenK = eigenK, p = 10)
 MLR <- association.test.logistic(x,  K = K, eigenK = eigenK, p = 10, algorithm = "amle")
 ```
 
-Now we can draw stratified quantile-quantile plots. We need to defined SNP categories,
-which can be done either with the 'true' strata information (as described in Chen et al), 
-or with the first PCs (Milet et al).
-
 ## Drawing  stratified QQ-plots
+
+Now we can draw stratified quantile-quantile plots. We need to defined SNP categories,
+which can be done either with the 'true' strata information as described in (Chen et al.,2016), 
+or with the first PCs (Milet and Perdry, 2020).
 
 The function `SNP.category` can handle any kind of variable: strata information, or a Principal Component 
 as a proxy.
@@ -213,26 +217,32 @@ cat.PC2 <- SNP.category(x,-eigenK$vectors[,2])
 ```
 
 First, the QQ-plots obtained with the mixed linear model, which shows differences between SNP categories:
-```{r qqplotsMLM, fig.height = 3, fig.width = 9, dev = 'png', cache = TRUE}
+```{r qqplotsMLM, fig.height = 3, fig.width = 9, dev = 'png', cache = TRUE, dpi = 300}
 par(mfrow=c(1,3), cex = 0.7)
-qqplot.pvalues(MLM, cat.str, col.abline="blue", main="MLM - Variance ratio from strata", pch = 16)
-qqplot.pvalues(MLM, cat.PC1, col.abline="blue", main="MLM - Variance ratio from PC1", pch = 16)
-qqplot.pvalues(MLM, cat.PC2, col.abline="blue", main="MLM - Variance ratio from PC2", pch = 16)
+qqplot.pvalues(MLM, cat.str, col.abline="blue", main="MLM - from strata", pch = 16)
+qqplot.pvalues(MLM, cat.PC1, col.abline="blue", main="MLM - from PC1", pch = 16)
+qqplot.pvalues(MLM, cat.PC2, col.abline="blue", main="MLM - from PC2", pch = 16)
 ```
 
 Then, the QQ-plot obtained with mixed logistic regression, in which no such differences exist.
-```{r qqplotsMLR, fig.height = 3, fig.width = 9, dev = 'png', cache = TRUE}
+```{r qqplotsMLR, fig.height = 3, fig.width = 9, dev = 'png', cache = TRUE, dpi = 300}
 par(mfrow=c(1,3), cex = 0.7)
-qqplot.pvalues(MLR, cat.str, col.abline="blue", main="MLR - Variance ratio from strata", pch = 16)
-qqplot.pvalues(MLR, cat.PC1, col.abline="blue", main="MLR - Variance ratio from PC1", pch = 16)
-qqplot.pvalues(MLR, cat.PC1, col.abline="blue", main="MLR - Variance ratio from PC2", pch = 16)
+qqplot.pvalues(MLR, cat.str, col.abline="blue", main="MLR - from strata", pch = 16)
+qqplot.pvalues(MLR, cat.PC1, col.abline="blue", main="MLR - from PC1", pch = 16)
+qqplot.pvalues(MLR, cat.PC1, col.abline="blue", main="MLR - from PC2", pch = 16)
 ```
 
 # References
 
-* Chen et al.
-* Milet and Perdry.
-* Hudson.
-* Zhou et al.
+* Chen, Z et al. (2016). Testing for association in case-control genome-wide association studies with shared controls. 
+*Statistical methods in medical research,* 25(2), 954–967.
+
+* Milet, J and Perdry, H. (2020). *Mixed Logistic Regression in Genome-Wide Association Studies.* 
+[Preprint on biorxiv.](https://www.biorxiv.org/content/10.1101/2020.01.17.910109v1)
+
+* Hudson, RR (2002). Generating samples under a Wright–Fisher neutral model of genetic variation. *Bioinformatics,* 18(2), 337–33.
+
+* Zhou, W et al. (2018). Efficiently controlling for case-control imbalance and sample relatedness 
+in large-scale genetic association studies. *Nature genetics,* 50(9), 1335
 
 
